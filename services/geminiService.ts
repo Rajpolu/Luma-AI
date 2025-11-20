@@ -3,7 +3,13 @@ import { stripBase64Prefix, getMimeTypeFromDataUri } from "../utils/imageUtils";
 
 // Initialize Gemini Client safely
 // We wrap this in a function to prevent top-level crashes if process.env is not yet defined during module load.
-const getAiClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getAiClient = () => {
+  const apiKey = typeof process !== 'undefined' && process.env ? process.env.API_KEY : '';
+  if (!apiKey) {
+      console.warn("API Key is missing. AI features will not work.");
+  }
+  return new GoogleGenAI({ apiKey: apiKey || 'dummy-key-to-prevent-crash' });
+};
 
 /**
  * Generates an image from a text prompt using Imagen 3/4 or Gemini Flash Image based on resolution.

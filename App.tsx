@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import ImageUploader from './components/ImageUploader';
@@ -223,7 +222,6 @@ const App: React.FC = () => {
     if (isDraggingLayer) return;
 
     // 1. Deselect Active Layer (Clear Distractions)
-    // Since layers stop propagation on mouse down, reaching here means we hit background
     if (state.activeLayerId) {
         setState(prev => ({ ...prev, activeLayerId: null }));
         setShowTextTools(false);
@@ -271,7 +269,7 @@ const App: React.FC = () => {
   // Toggle panel visibility on double click for distraction-free mode
   const handleDoubleClick = (e: React.MouseEvent) => {
     if (state.mode === AppMode.EDIT) {
-        setShowLayersPanel(prev => !prev);
+        if (!showLayersPanel) setShowLayersPanel(true);
     }
   };
 
@@ -698,7 +696,10 @@ const App: React.FC = () => {
           >
             
             {(state.uploadedImage || state.resultImage) && (
-                <div className="absolute top-4 right-4 z-50 flex items-center gap-1 bg-gray-900/60 backdrop-blur-md border border-gray-700/50 p-1.5 rounded-full shadow-xl">
+                <div 
+                    className="absolute top-4 right-4 z-50 flex items-center gap-1 bg-gray-900/60 backdrop-blur-md border border-gray-700/50 p-1.5 rounded-full shadow-xl"
+                    onMouseDown={(e) => e.stopPropagation()} // Prevent background click when using zoom
+                >
                     <button onClick={handleZoomOut} className="p-1.5 hover:bg-gray-800/50 rounded-full text-gray-300"><ZoomOut size={14} /></button>
                     <span className="text-[10px] w-8 text-center text-gray-400 font-mono">{Math.round(zoom * 100)}%</span>
                     <button onClick={handleZoomIn} className="p-1.5 hover:bg-gray-800/50 rounded-full text-gray-300"><ZoomIn size={14} /></button>
@@ -800,7 +801,10 @@ const App: React.FC = () => {
                        
                        {/* History Controls */}
                        {state.mode === AppMode.EDIT && state.uploadedImage && (
-                         <div className="bg-gray-800/80 backdrop-blur border-t border-gray-700 p-2 flex items-center justify-between z-20">
+                         <div 
+                            className="bg-gray-800/80 backdrop-blur border-t border-gray-700 p-2 flex items-center justify-between z-20"
+                            onMouseDown={(e) => e.stopPropagation()} // Prevent background click
+                         >
                              <div className="flex items-center gap-1">
                                 <button onClick={handleUndo} disabled={state.currentHistoryIndex <= 0} className="p-2 rounded hover:bg-gray-700 disabled:opacity-30 text-gray-300"><Undo2 size={18} /></button>
                                 <button onClick={handleRedo} disabled={state.currentHistoryIndex >= state.editHistory.length - 1} className="p-2 rounded hover:bg-gray-700 disabled:opacity-30 text-gray-300"><Redo2 size={18} /></button>
@@ -812,7 +816,10 @@ const App: React.FC = () => {
 
                 {/* Result View */}
                 {state.resultImage && (
-                  <div className="flex-1 relative bg-gray-900 border border-gray-700 rounded-xl overflow-hidden shadow-2xl flex flex-col pointer-events-auto">
+                  <div 
+                    className="flex-1 relative bg-gray-900 border border-gray-700 rounded-xl overflow-hidden shadow-2xl flex flex-col pointer-events-auto"
+                    onMouseDown={(e) => e.stopPropagation()}
+                  >
                         <div className="flex-1 flex items-center justify-center p-2">
                         <img src={state.resultImage} alt="Result" className="max-w-full max-h-full object-contain shadow-lg" style={canvasStyle} />
                         </div>
@@ -830,7 +837,10 @@ const App: React.FC = () => {
               </div>
 
               {/* Tool Bar */}
-              <div className="w-full bg-gray-900/50 p-2 rounded-2xl backdrop-blur border border-gray-800 flex flex-col gap-2 shadow-xl z-20 pointer-events-auto">
+              <div 
+                className="w-full bg-gray-900/50 p-2 rounded-2xl backdrop-blur border border-gray-800 flex flex-col gap-2 shadow-xl z-20 pointer-events-auto"
+                onMouseDown={(e) => e.stopPropagation()} // Prevent background click from toolbar
+              >
                 <div className="flex items-center justify-between">
                     <div className="flex-1 flex flex-nowrap overflow-x-auto gap-4 px-2 pb-2 scrollbar-none">
                     {state.mode === AppMode.EDIT && state.uploadedImage && (
