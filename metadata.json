@@ -1,0 +1,5 @@
+{
+  "name": "Lumina AI Studio",
+  "description": "A professional-grade AI photo editor and generator powered by Gemini 2.5 and Imagen 3. Features include text-to-image generation, intelligent image editing, and detailed visual analysis.",
+  "requestFramePermissions": []
+}
