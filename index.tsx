@@ -8,8 +8,13 @@ if (!rootElement) {
 }
 
 const root = createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+
+try {
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+} catch (error) {
+  console.error("Failed to mount React application:", error);
+}

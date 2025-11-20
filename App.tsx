@@ -5,7 +5,7 @@ import LayersPanel from './components/LayersPanel';
 import PromptInput from './components/PromptInput';
 import { AppMode, AppState, AspectRatio, FilterType, HistoryItem, Resolution, Adjustments, Layer, GradientSettings, BrushSettings } from './types';
 import { generateImage, editImage, analyzeImage, removeBackground, upscaleImage } from './services/geminiService';
-import { Download, RefreshCw, AlertCircle, Maximize2, X, Undo2, Redo2, Check, History as HistoryIcon, Scissors, SlidersHorizontal, Ban, ChevronsUp, Columns, ZoomIn, ZoomOut, RotateCcw, Type, Trash2, Plus, Palette, Eye, Circle, Paintbrush, Wand2, Crop, Layers } from 'lucide-react';
+import { Download, RefreshCw, AlertCircle, Maximize2, X, Undo2, Redo2, Check, History as HistoryIcon, Scissors, SlidersHorizontal, Ban, ChevronsUp, Columns, ZoomIn, ZoomOut, RotateCcw, Type, Trash2, Plus, Palette, Eye, Circle, Paintbrush, Wand2, Crop, Layers, Loader2 } from 'lucide-react';
 import { downloadImage, applyImageFilter, applyAdjustments, composeLayers, applyGradient, mergeImages, cropImage } from './utils/imageUtils';
 
 const DEFAULT_ADJUSTMENTS: Adjustments = {
@@ -105,6 +105,15 @@ const App: React.FC = () => {
   const [isDraggingLayer, setIsDraggingLayer] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Remove loading screen on mount
+  useEffect(() => {
+    const loader = document.getElementById('loading-screen');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => loader.remove(), 500);
+    }
+  }, []);
 
   const handleModeChange = (mode: AppMode) => {
     setState(prev => ({
@@ -365,7 +374,8 @@ const App: React.FC = () => {
       layers: [baseLayer],
       activeLayerId: baseLayer.id,
       editHistory: [initialHistory],
-      currentHistoryIndex: 0
+      currentHistoryIndex: 0,
+      errorMessage: null
     }));
     
     setAdjustments(DEFAULT_ADJUSTMENTS);
@@ -453,6 +463,7 @@ const App: React.FC = () => {
       setState(prev => ({ ...prev, activeFilter: 'none' })); 
     } catch (error) {
       console.error("Failed to apply filter:", error);
+      setState(prev => ({ ...prev, errorMessage: "Failed to apply filter" }));
     }
   };
 
@@ -474,7 +485,7 @@ const App: React.FC = () => {
       setShowAdjustments(false);
     } catch (error) {
        console.error("Failed to apply adjustments:", error);
-       setState(prev => ({ ...prev, status: 'error' }));
+       setState(prev => ({ ...prev, status: 'error', errorMessage: "Failed to apply adjustments" }));
     }
   };
 
@@ -535,7 +546,7 @@ const App: React.FC = () => {
         captureHistorySnapshot();
     } catch (error) {
         console.error("Failed to apply brush:", error);
-        setState(prev => ({ ...prev, status: 'error' }));
+        setState(prev => ({ ...prev, status: 'error', errorMessage: "Failed to apply brush stroke" }));
     }
   };
 
@@ -574,17 +585,6 @@ const App: React.FC = () => {
   const applyCurrentCrop = async () => {
       if (!cropSelection || !state.uploadedImage || !imageDimensions) return;
       
-      // Map screen coordinates to image coordinates
-      // Simplification: We need the scale factor of displayed image vs natural
-      // BUT we are applying crop on the SCREEN selection for now.
-      // To be accurate, we should map the selection relative to the image element.
-      
-      // For MVP, let's assume the user wants to crop the BASE image.
-      // We calculate ratio based on the rendered image size in the DOM.
-      
-      // Finding the displayed image element is tricky with React refs in this structure
-      // We will use the imageDimensions state if available
-      
       const displayedWidth = imageDimensions.width; 
       const displayedHeight = imageDimensions.height;
       const naturalWidth = imageDimensions.naturalWidth;
@@ -592,10 +592,6 @@ const App: React.FC = () => {
       
       const scaleX = naturalWidth / displayedWidth;
       const scaleY = naturalHeight / displayedHeight;
-      
-      // We need to account for Pan/Zoom in the selection?
-      // The selection overlay is inside the zoomed container? Yes.
-      // So the coordinates from handleCrop are relative to the zoomed container.
       
       const finalCrop = {
           x: cropSelection.x * scaleX,
@@ -611,6 +607,7 @@ const App: React.FC = () => {
           handleImageUpload(cropped);
       } catch(e) {
           console.error(e);
+          setState(prev => ({ ...prev, errorMessage: "Failed to crop image" }));
       }
   };
 
@@ -630,6 +627,24 @@ const App: React.FC = () => {
             resultImage: resultImg,
             prompt: `Style: ${style.label}` 
         }));
+    } catch (error: any) {
+        setState(prev => ({ ...prev, status: 'error', errorMessage: error.message }));
+    }
+  };
+
+  const handleAIAction = async () => {
+    if (!state.prompt.trim()) return;
+    setState(prev => ({ ...prev, status: 'loading', errorMessage: null }));
+    
+    try {
+        if (state.mode === AppMode.GENERATE) {
+            const img = await generateImage(state.prompt, state.aspectRatio, state.resolution);
+            setState(prev => ({ ...prev, status: 'success', resultImage: img }));
+        } else if (state.mode === AppMode.ANALYZE && state.uploadedImage) {
+            const analysis = await analyzeImage(state.uploadedImage, state.prompt);
+             alert(analysis); 
+             setState(prev => ({ ...prev, status: 'idle' }));
+        }
     } catch (error: any) {
         setState(prev => ({ ...prev, status: 'error', errorMessage: error.message }));
     }
@@ -680,7 +695,20 @@ const App: React.FC = () => {
         </header>
 
         <div className="flex-1 relative flex flex-row overflow-hidden">
-          
+            
+          {/* Error Toast */}
+          {state.errorMessage && (
+             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500/90 text-white px-4 py-3 rounded-lg shadow-xl flex items-start gap-3 backdrop-blur-sm animate-in slide-in-from-top-5 fade-in duration-300 max-w-md">
+                <AlertCircle size={20} className="shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                    <span className="text-sm font-bold">Operation Failed</span>
+                    <span className="text-xs opacity-90">{state.errorMessage}</span>
+                    <span className="text-[10px] opacity-70 mt-1">Make sure VITE_API_KEY is set in your Vercel Environment Variables.</span>
+                </div>
+                <button onClick={() => setState(prev => ({ ...prev, errorMessage: null }))} className="hover:bg-white/20 rounded p-1"><X size={16}/></button>
+             </div>
+          )}
+
           {/* Canvas Area */}
           <div 
             className="group flex-1 relative p-4 md:p-8 flex flex-col items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 to-gray-950 outline-none"
@@ -881,7 +909,13 @@ const App: React.FC = () => {
                                 <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">AI Styles</span>
                                 <div className="flex bg-gray-800/50 p-1 rounded-lg border border-gray-700/50">
                                     {ARTISTIC_STYLES.slice(0,3).map(style => (
-                                    <button key={style.id} onClick={() => handleArtisticFilter(style)} className="px-3 py-1 rounded-md text-xs font-medium bg-gray-700 hover:bg-gray-600 text-white mr-1 last:mr-0 whitespace-nowrap">
+                                    <button 
+                                        key={style.id} 
+                                        onClick={() => handleArtisticFilter(style)} 
+                                        disabled={state.status === 'loading'}
+                                        className="px-3 py-1 rounded-md text-xs font-medium bg-gray-700 hover:bg-gray-600 text-white mr-1 last:mr-0 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait flex items-center gap-1"
+                                    >
+                                        {state.status === 'loading' && state.prompt.includes(style.label) ? <Loader2 size={10} className="animate-spin" /> : null}
                                         {style.label}
                                     </button>
                                     ))}
@@ -964,7 +998,7 @@ const App: React.FC = () => {
                      <PromptInput 
                         value={state.prompt} 
                         onChange={val => setState(prev => ({...prev, prompt: val}))}
-                        onSubmit={() => { /* AI handling */ }}
+                        onSubmit={handleAIAction}
                         loading={state.status === 'loading'}
                     />
                 )}
