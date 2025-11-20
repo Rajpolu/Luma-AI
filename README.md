@@ -1,6 +1,6 @@
 # LumAI
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![GitHub stars](https://img.shields.io/github/stars/Rajpolu/Luma-AI.svg)](https://github.com/Rajpolu/Luma-AI/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/Rajpolu/Luma-AI.svg)](https://github.com/Rajpolu/Luma-AI/issues)
 [![GitHub contributors](https://img.shields.io/github/contributors/Rajpolu/Luma-AI.svg)](https://github.com/Rajpolu/Luma-AI/graphs/contributors)
