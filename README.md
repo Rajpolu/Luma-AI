@@ -30,7 +30,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/lumai.git
+git clone https://github.com/Rajpolu/Luma-AI.git
 
 # Navigate into the project directory
 cd lumai
