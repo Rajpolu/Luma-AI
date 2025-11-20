@@ -33,7 +33,7 @@
 git clone https://github.com/Rajpolu/Luma-AI.git
 
 # Navigate into the project directory
-cd lumai
+cd Luma-AI
 
 # Install dependencies
 npm install   # or pip install -r requirements.txt
