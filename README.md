@@ -1,4 +1,4 @@
-# LumAI
+# Luma AI
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![GitHub stars](https://img.shields.io/github/stars/Rajpolu/Luma-AI.svg)](https://github.com/Rajpolu/Luma-AI/stargazers)
