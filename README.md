@@ -42,7 +42,7 @@ npm install   # or pip install -r requirements.txt
 npm start     # or python app.py
 ```
 
-##Usage
+## Usage
 
 1. Open the web app in your browser.
 
@@ -52,7 +52,7 @@ npm start     # or python app.py
 
 4. Download or share your edited image.
 
-##Contributing
+## Contributing
 
 - Contributions are welcome! You can help by:
 
@@ -64,7 +64,7 @@ npm start     # or python app.py
 
 Please follow the Code of Conduct and adhere to the Contribution Guidelines
 
-##Sponsoring / Support
+## Sponsoring / Support
 
 If you like LumAI and want to support its development:
 
