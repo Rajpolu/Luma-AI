@@ -1,16 +1,17 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 import { stripBase64Prefix, getMimeTypeFromDataUri } from "../utils/imageUtils";
 
-// Initialize Gemini Client
-// NOTE: In a production app, ensure strict env var checking.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize Gemini Client safely
+// We wrap this in a function to prevent top-level crashes if process.env is not yet defined during module load.
+const getAiClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
  * Generates an image from a text prompt using Imagen 3/4 or Gemini Flash Image based on resolution.
  */
 export const generateImage = async (prompt: string, aspectRatio: string = '1:1', resolution: 'low' | 'medium' | 'high' = 'high'): Promise<string> => {
   try {
+    const ai = getAiClient();
+    
     // High resolution uses the dedicated Imagen model for best quality
     if (resolution === 'high') {
       const response = await ai.models.generateImages({
@@ -65,6 +66,7 @@ export const generateImage = async (prompt: string, aspectRatio: string = '1:1',
  */
 export const editImage = async (base64DataUri: string, prompt: string): Promise<string> => {
   try {
+    const ai = getAiClient();
     const rawBase64 = stripBase64Prefix(base64DataUri);
     const mimeType = getMimeTypeFromDataUri(base64DataUri);
 
@@ -136,6 +138,7 @@ export const upscaleImage = async (base64DataUri: string): Promise<string> => {
  */
 export const analyzeImage = async (base64DataUri: string, prompt: string): Promise<string> => {
   try {
+    const ai = getAiClient();
     const rawBase64 = stripBase64Prefix(base64DataUri);
     const mimeType = getMimeTypeFromDataUri(base64DataUri);
 
